@@ -1,7 +1,6 @@
 package model;
 
 import java.util.Date;
-import java.util.UUID;
 
 public class Transaction {
     private int id;
@@ -10,6 +9,7 @@ public class Transaction {
     private String type; // "доход" или "расход"
     private String category;
     private String description;
+    private Date date;
 
     public Transaction(double amount, String type, String category, String description) {
         this.userId = userId;
@@ -64,5 +64,13 @@ public class Transaction {
     @Override
     public String toString() {
         return id + ". " + type + " - " + amount + " - " + category + " - " + date + " - " + description;
+    }
+
+    public Object getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 }

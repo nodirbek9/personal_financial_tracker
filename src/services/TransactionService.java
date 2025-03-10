@@ -6,13 +6,18 @@ import model.User;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class FinanceService {
+public class TransactionService {
     private User currentUser;
     private List<Transaction> transactions = new ArrayList<>();
 
-    public FinanceService(User user) {
+    public TransactionService(User user) {
         this.currentUser = user;
+    }
+
+    public TransactionService() {
+
     }
 
     public void addTransaction(String type, double amount, String category, String description) {
@@ -45,5 +50,12 @@ public class FinanceService {
                 System.out.println(t);
             }
         }
+    }
+
+    // Метод для получения списка транзакций пользователя
+    public List<Transaction> getUserTransactions(int userId) {
+        return transactions.stream()
+                .filter(transaction -> transaction.getUserId().equals(userId))
+                .collect(Collectors.toList());
     }
 }

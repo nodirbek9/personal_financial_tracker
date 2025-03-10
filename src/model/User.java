@@ -2,7 +2,6 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class User {
     private static int idCounter = 1;
@@ -18,6 +17,7 @@ public class User {
     private Budget budget;
     private Goal goal;
     private boolean isBlocked;
+    private String role;
 
     public User(String email, String password, String name) {
         this.id = id;
@@ -31,6 +31,9 @@ public class User {
 
     public int getId() {
         return id;
+    }
+    public boolean isAdmin() {
+        return "ADMIN".equals(this.role); // Проверяем, админ ли пользователь
     }
     public String getEmail() { return email; }
     public boolean checkPassword(String password) { return this.password.equals(password); }

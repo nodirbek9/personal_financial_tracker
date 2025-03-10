@@ -3,13 +3,12 @@ package services;
 import model.Transaction;
 import model.User;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class FinanceStatistics {
-    private FinanceService financeService;
+    private TransactionService financeService;
 
     private List<Transaction> transactions;
 
@@ -29,13 +28,13 @@ public class FinanceStatistics {
         }
         return balance;
     }
-    public double getTotalIncome(String userId, Date startDate, Date endDate) {
-        return transactions.stream()
-                .filter(t -> t.getUserId().equals(userId) && t.getType().equals("доход") &&
-                        t.getDate().compareTo(startDate) >= 0 && t.getDate().compareTo(endDate) <= 0)
-                .mapToDouble(Transaction::getAmount)
-                .sum();
-    }
+//    public double getTotalIncome(String userId, Date startDate, Date endDate) {
+//        return transactions.stream()
+//                .filter(t -> t.getUserId().equals(userId) && t.getType().equals("доход") &&
+//                        t.getDate().compareTo(startDate) >= 0 && t.getDate().compareTo(endDate) <= 0)
+//                .mapToDouble(Transaction::getAmount)
+//                .sum();
+//    }
     // Анализ расходов по категориям
     public Map<String, Double> analyzeExpensesByCategory() {
         Map<String, Double> categoryExpenses = new HashMap<>();

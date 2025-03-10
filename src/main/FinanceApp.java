@@ -1,6 +1,7 @@
 package main;
 
 import model.Goal;
+import model.Transaction;
 import model.User;
 import services.*;
 
@@ -10,6 +11,7 @@ import java.util.Scanner;
 // Главный класс
 public class FinanceApp {
     private static FinanceStatistics transactionService;
+    static AdminService adminService;
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -75,7 +77,7 @@ public class FinanceApp {
                             if (currentUser != null) {
                                 System.out.println("Добро пожаловать, " + currentUser.getName() + "!");
                             }
-                            FinanceService fm = new FinanceService(currentUser);
+                            TransactionService fm = new TransactionService(currentUser);
                             while (true) {
                                 System.out.println("1. Добавить транзакцию\n" +
                                         "2. Редактировать транзакцию" +
@@ -192,20 +194,48 @@ public class FinanceApp {
                                 transactionService.analyzeExpensesByCategory();
                             } else if (analyticsAction == 4) {
                                 transactionService.generateFinancialReport(currentUser);
-                            } else if (action == 6) {
-                                // Администрирование
-                            } else {
+                            }
+                        } else if (action == 6) {
+                            if (!currentUser.isAdmin()) { // Проверяем, что пользователь - админ
+                                System.out.println("У вас нет прав для выполнения этой операции.");
+                                continue;
+                            }
+
+                            System.out.println("1. Просмотр всех пользователей\n2. Просмотр транзакций пользователя\n3. Блокировка пользователя\n4. Удаление пользователя");
+                            int adminAction = scanner.nextInt();
+                            scanner.nextLine();
+
+
+                            if (adminAction == 1) {
+                                List<User> users = adminService.getAllUsers();
+                                users.forEach(user -> System.out.println("ID: " + user.getId() + ", Email: " + user.getEmail() + ", Имя: " + user.getName()));
+                            } else if (adminAction == 2) {
+                                System.out.println("Введите ID пользователя:");
+                                String userId = scanner.nextLine();
+                                List<Transaction> transactions = adminService.getUserTransactions(userId);
+                                transactions.forEach(tx -> System.out.println(tx));
+                            } else if (adminAction == 3) {
+                                System.out.println("Введите ID пользователя для блокировки:");
+                                String userId = scanner.nextLine();
+                                adminService.blockUser(userId);
+                                System.out.println("Пользователь заблокирован.");
+                            } else if (adminAction == 4) {
+                                System.out.println("Введите ID пользователя для удаления:");
+                                String userId = scanner.nextLine();
+                                adminService.deleteUser(userId);
+                                System.out.println("Пользователь удален.");
+                            }
+                        } else {
                                 break;
                             }
-                        }
                     }
-                } else if (choice == 3) {
-                    break;
-                } else {
-                    System.out.println("Вы ввели неправилное содержание!");
                 }
+            } else if (choice == 3) {
+                break;
+            } else {
+                System.out.println("Вы ввели неправилное содержание!");
             }
-            scanner.close();
         }
+        scanner.close();
     }
 }

@@ -28,6 +28,10 @@ public class UserService {
         return users.remove(id) != null;
     }
 
+    public User getUserById(int id) {
+        return users.get(id);
+    }
+
 //    // Метод для добавления пользователей (для тестирования)
 //    public void addUser(User user) {
 //        users.put(user.getId(), user);
