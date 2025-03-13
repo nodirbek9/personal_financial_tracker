@@ -1,27 +1,31 @@
 package main;
 
-import model.Goal;
 import model.Transaction;
 import model.User;
 import services.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
-// Главный класс
+
+ //Консольное приложение для управления личными финансами.
+
 public class FinanceApp {
-    private static FinanceStatistics transactionService;
-    static AdminService adminService;
+    private static final TransactionService transactionService = new TransactionService();
+    private static final ReportService reportService = new ReportService();
+    private static final AdminService adminService = new AdminService();
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         AuthService authService = new AuthService();
-        UserService userService = new UserService();
+        UserService userService = new UserService(new HashMap<>());
         BudgetService budgetService = new BudgetService();
         GoalService goalService = new GoalService();
         NotificationService notificationService = new NotificationService();
 
-        User currentUser = null;
+
+
 
         while (true) {
             System.out.println("1. Регистрация\n2. Вход\n3. Выход");
@@ -35,13 +39,13 @@ public class FinanceApp {
                 String password = scanner.nextLine();
                 System.out.println("Введите имя:");
                 String name = scanner.nextLine();
-                currentUser = authService.register(email, password, name);
-            } else if (choice == 2) {
+                User currentUser = authService.register(email, password, name);
+            }else if (choice == 2) {
                 System.out.println("Введите email:");
                 String email = scanner.nextLine();
                 System.out.println("Введите пароль:");
                 String password = scanner.nextLine();
-                currentUser = authService.login(email, password);
+                User currentUser = authService.login(email, password);
 
                 if (currentUser != null) {
                     while (true) {
@@ -60,13 +64,13 @@ public class FinanceApp {
                             int userAction = scanner.nextInt();
                             scanner.nextLine();
                             if (userAction == 1) {
-                                System.out.println("Введите новый email:");
+                                System.out.println("Введите email:");
                                 String newEmail = scanner.nextLine();
                                 System.out.println("Введите новый пароль:");
                                 String newPassword = scanner.nextLine();
                                 System.out.println("Введите новое имя:");
                                 String newName = scanner.nextLine();
-                                userService.updateUser(currentUser.getId(), newEmail, newPassword, newName);
+                                userService.updateProfile(currentUser.getId(), newEmail, newPassword, newName);
                             } else if (userAction == 2) {
                                 userService.deleteUser(currentUser.getId());
                                 currentUser = null;
@@ -77,7 +81,7 @@ public class FinanceApp {
                             if (currentUser != null) {
                                 System.out.println("Добро пожаловать, " + currentUser.getName() + "!");
                             }
-                            TransactionService fm = new TransactionService(currentUser);
+                            TransactionService fm = new TransactionService();
                             while (true) {
                                 System.out.println("1. Добавить транзакцию\n" +
                                         "2. Редактировать транзакцию" +
@@ -88,8 +92,6 @@ public class FinanceApp {
                                 scanner.nextLine();
 
                                 if (choice1 == 1) {
-                                    System.out.println("Тип (доход/расход):");
-                                    String type = scanner.nextLine();
                                     System.out.println("Сумма:");
                                     double amount = scanner.nextDouble();
                                     scanner.nextLine();
@@ -97,7 +99,10 @@ public class FinanceApp {
                                     String category = scanner.nextLine();
                                     System.out.println("Описание:");
                                     String description = scanner.nextLine();
-                                    fm.addTransaction(type, amount, category, description);
+                                    Transaction transaction = new Transaction(currentUser.getId(),
+                                            amount, category,description,false);
+                                    transactionService.addTransaction(currentUser.getEmail(), transaction);
+
                                 } else if (choice1 == 2) {
                                     System.out.println("Введите ID транзакции:");
                                     int id = scanner.nextInt();
@@ -109,25 +114,24 @@ public class FinanceApp {
                                     String category = scanner.nextLine();
                                     System.out.println("Новое описание:");
                                     String description = scanner.nextLine();
-                                    fm.updateTransaction(id, amount, category, description);
+                                    fm.updateTransaction(currentUser.getEmail(), id, amount, category, description);
                                 } else if (choice1 == 3) {
                                     System.out.println("Введите ID транзакции:");
                                     int id = scanner.nextInt();
                                     scanner.nextLine();
-                                    fm.deleteTransaction(id);
+                                    fm.deleteTransaction(currentUser.getEmail(), id);
                                 } else if (choice1 == 4) {
-                                    System.out.println("Фильтр по типу (доход/расход, оставьте пустым для всех):");
-                                    String type = scanner.nextLine();
-                                    System.out.println("Фильтр по категории (оставьте пустым для всех):");
-                                    String category = scanner.nextLine();
-                                    fm.showTransactions(type.isEmpty() ? null : type, category.isEmpty() ? null : category, null);
+                                    List<Transaction> transactions = transactionService.getUserTransactions(currentUser.getEmail());
+                                    transactions.forEach(System.out::println);
                                 } else {
                                     break;
                                 }
                             }
                         } else if (action == 3) {
                             // Управление бюджетом
-                            System.out.println("1. Установить месячный бюджет\n2. Проверить превышение бюджета");
+                            System.out.println("1. Установить бюджет\\" +
+                                    "n2. Просмотреть бюджет\\" +
+                                    "n3. Назад");
                             int budgetAction = scanner.nextInt();
                             scanner.nextLine();
 
@@ -135,18 +139,17 @@ public class FinanceApp {
                                 System.out.println("Введите сумму бюджета на месяц:");
                                 double budgetAmount = scanner.nextDouble();
                                 scanner.nextLine();
-                                budgetService.setMonthlyBudget(budgetAmount);
+                                budgetService.setBudget(currentUser.getEmail(), budgetAmount);
                             } else if (budgetAction == 2) {
-                                boolean exceeded = budgetService.checkBudgetExceeded();
-                                if (exceeded) {
-                                    System.out.println("Вы превысили месячный бюджет!");
-                                    notificationService.sendBudgetLimitAlert(currentUser);
-                                } else {
-                                    System.out.println("Вы в пределах бюджета.");
-                                }
+                                System.out.println("Ваш бюджет: " + budgetService.getBudget(currentUser.getEmail()));
+                            }else if (budgetAction == 3){
+                                break;
                             }
                         } else if (action == 4) {
-                            System.out.println("1. Установить новую цель\n2. Обновить прогресс\n3. Показать цели");
+                            System.out.println("1. Установить цель\\n" +
+                                    "2. Обновить прогресс\\n" +
+                                    "3. Просмотреть цель\\n" +
+                                    "4. Назад");
                             int goalAction = scanner.nextInt();
                             scanner.nextLine();
 
@@ -156,86 +159,63 @@ public class FinanceApp {
                                 scanner.nextLine();
                                 System.out.println("Введите описание цели:");
                                 String description = scanner.nextLine();
-                                goalService.setGoal(currentUser, goalAmount, description);
+                                goalService.setGoal(currentUser.getEmail(), description, goalAmount);
                             } else if (goalAction == 2) {
                                 System.out.println("Введите сумму внесенного вклада:");
                                 double deposit = scanner.nextDouble();
                                 scanner.nextLine();
-                                goalService.updateGoalProgress(currentUser, deposit);
+                                goalService.updateGoalProgress(currentUser.getEmail(), deposit);
                             } else if (goalAction == 3) {
-                                List<Goal> userGoals = goalService.getUserGoals(currentUser);
-                                if (userGoals.isEmpty()) {
+                                System.out.println(goalService.getGoal(currentUser.getEmail()));
+                                if (currentUser.getEmail().isEmpty()) {
                                     System.out.println("У вас нет целей.");
-                                } else {
-                                    for (Goal goal : userGoals) {
-                                        System.out.println("Цель: " + goal.getDescription() + " | Прогресс: " + goal.getProgress() + "/" + goal.getTargetAmount());
-                                    }
                                 }
                             }
                         } else if (action == 5) {
-                            System.out.println("1. Текущий баланс");
-                            System.out.println("2. Доходы и расходы за период");
-                            System.out.println("3. Анализ расходов по категориям");
-                            System.out.println("4. Сформировать отчёт");
-                            int analyticsAction = scanner.nextInt();
-                            scanner.nextLine();
-
-                            if (analyticsAction == 1) {
-                                double balance = transactionService.calculateBalance(currentUser);
-                                System.out.println("Текущий баланс: " + balance);
-                            } else if (analyticsAction == 2) {
-                                System.out.println("Введите начальную дату (yyyy-MM-dd):");
-                                String startDate = scanner.nextLine();
-                                System.out.println("Введите конечную дату (yyyy-MM-dd):");
-                                String endDate = scanner.nextLine();
-                                System.out.println("Доход: ");
-                                System.out.println("Расход: ");
-                            } else if (analyticsAction == 3) {
-                                transactionService.analyzeExpensesByCategory();
-                            } else if (analyticsAction == 4) {
-                                transactionService.generateFinancialReport(currentUser);
-                            }
+                            List<Transaction> transactions = transactionService.getUserTransactions(currentUser.getEmail());
+                            System.out.println(reportService.generateReport(currentUser, transactions));
                         } else if (action == 6) {
-                            if (!currentUser.isAdmin()) { // Проверяем, что пользователь - админ
+                            if (currentUser.getEmail()=="ADMIN") { // Проверяем, что пользователь - админ
                                 System.out.println("У вас нет прав для выполнения этой операции.");
-                                continue;
+                                return;
                             }
 
-                            System.out.println("1. Просмотр всех пользователей\n2. Просмотр транзакций пользователя\n3. Блокировка пользователя\n4. Удаление пользователя");
+                            System.out.println("1. Просмотр всех пользователей\n" +
+                                    "2. Просмотр транзакций пользователя\n" +
+                                    "3. Блокировка пользователя\n" +
+                                    "4. Удаление пользователя");
                             int adminAction = scanner.nextInt();
                             scanner.nextLine();
 
-
-                            if (adminAction == 1) {
-                                List<User> users = adminService.getAllUsers();
-                                users.forEach(user -> System.out.println("ID: " + user.getId() + ", Email: " + user.getEmail() + ", Имя: " + user.getName()));
-                            } else if (adminAction == 2) {
-                                System.out.println("Введите ID пользователя:");
-                                String userId = scanner.nextLine();
-                                List<Transaction> transactions = adminService.getUserTransactions(userId);
-                                transactions.forEach(tx -> System.out.println(tx));
-                            } else if (adminAction == 3) {
-                                System.out.println("Введите ID пользователя для блокировки:");
-                                String userId = scanner.nextLine();
-                                adminService.blockUser(userId);
-                                System.out.println("Пользователь заблокирован.");
-                            } else if (adminAction == 4) {
-                                System.out.println("Введите ID пользователя для удаления:");
-                                String userId = scanner.nextLine();
-                                adminService.deleteUser(userId);
-                                System.out.println("Пользователь удален.");
-                            }
-                        } else {
+                            System.out.println("1. Просмотреть пользователей\n" +
+                                    "2. Удалить пользователя\n" +
+                                    "3. Назад");
+                            int choise = scanner.nextInt();
+                            scanner.nextLine();
+                            if (choice == 1){
+                                adminService.getAllUsers().values().forEach(System.out::println);
+                            } else if (choice == 2) {
+                                System.out.print("Введите email пользователя для удаления: ");
+                                String emailRemove = scanner.nextLine();
+                                adminService.removeUser(emailRemove);
+                            }else  if (choice == 3){
                                 break;
+                            }else {
+                                System.out.println("Неверный ввод.");
+
                             }
+                        }else if (action == 7){
+                            break;
+                        }else {
+                            System.out.println("Неверный ввод.");
+                        }
                     }
                 }
-            } else if (choice == 3) {
+            }else if (choice == 3) {
                 break;
             } else {
                 System.out.println("Вы ввели неправилное содержание!");
             }
-        }
-        scanner.close();
+        } scanner.close();
     }
 }

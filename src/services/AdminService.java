@@ -1,44 +1,47 @@
 package services;
 
-import model.Transaction;
 import model.User;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Сервис для администрирования пользователей.
+ */
 public class AdminService {
-    private Map<String, User> users;
+    private final Map<String, User> users = new HashMap<>(); // Хранение пользователей
 
-    public AdminService(Map<String, User> users) {
-        this.users = users;
+    /**
+     * Добавляет нового пользователя.
+     * @param user Пользователь для добавления.
+     */
+    public void addUser(User user) {
+        users.put(user.getEmail(), user);
     }
 
-    public List<User> getAllUsers() {
-        return new ArrayList<>(users.values());
+    /**
+     * Удаляет пользователя по email.
+     * @param email Email пользователя.
+     */
+    public void removeUser(String email) {
+        users.remove(email);
     }
 
-    public List<Transaction> getUserTransactions(String userId) {
-        User user = users.get(userId);
-        if (user != null) {
-            return user.getTransactions();
+    /**
+     * Блокирует пользователя (делает его неактивным).
+     * @param email Email пользователя.
+     */
+    public void blockUser(String email) {
+        if (users.containsKey(email)) {
+            users.get(email).setAdmin(false);
         }
-        return Collections.emptyList();
     }
 
-    public void blockUser(String userId) {
-        User user = users.get(userId);
-        if (user != null) {
-            user.blockUser();
-            System.out.println("Пользователь " + user.getEmail() + " заблокирован.");
-        }
-    }
-
-    public void deleteUser(String userId) {
-        if (users.containsKey(userId)) {
-            users.remove(userId);
-            System.out.println("Пользователь удален.");
-        }
+    /**
+     * Получает список всех пользователей.
+     * @return Map пользователей.
+     */
+    public Map<String, User> getAllUsers() {
+        return users;
     }
 }

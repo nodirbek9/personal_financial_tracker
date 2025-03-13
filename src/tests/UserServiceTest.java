@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import services.UserService;
 
+import java.util.HashMap;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class UserServiceTest {
@@ -13,13 +15,13 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService();
+        userService = new UserService(new HashMap<>());
         mockUser = new User("user@mail.com", "12345", "John");
     }
 
     @Test
     void testUpdateUser() {
-        userService.updateUser(mockUser.getId(), "new@mail.com", "newpass", "New Name");
+        userService.updateProfile(mockUser.getId(), "new@mail.com", "newpass", "New Name");
         assertThat(mockUser.getEmail()).isEqualTo("new@mail.com");
         assertThat(mockUser.getName()).isEqualTo("New Name");
     }

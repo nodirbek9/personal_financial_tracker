@@ -1,20 +1,24 @@
 package services;
 
+import model.Budget;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class BudgetService {
-    private double monthlyLimit;
-    private double currentExpenses = 0;
+    private final Map<String, Budget> budgets = new HashMap<>();
 
-    public void setMonthlyBudget(double limit) {
-        this.monthlyLimit = limit;
+    public void setBudget(String userEmail, double amount) {
+        budgets.put(userEmail, new Budget(userEmail, amount));
     }
 
-    public void addExpense(double amount) {
-        currentExpenses += amount;
-        checkBudgetExceeded();
+    public Budget getBudget(String userEmail) {
+        return budgets.get(userEmail);
     }
 
-    public boolean checkBudgetExceeded() {
-        System.out.println((currentExpenses > monthlyLimit) ? "Вы превысили месячный лимит!": false);
-           return true;
+    public void updateBudget(String userEmail, double newAmount) {
+        if (budgets.containsKey(userEmail)) {
+            budgets.get(userEmail).addExpense(newAmount);
+        }
     }
 }

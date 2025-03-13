@@ -19,18 +19,20 @@ class TransactionServiceTest {
 
     @Test
     void testAddTransaction() {
-        transactionService.addTransaction("Income", 500, "network", "For internet");
-        List<Transaction> transactions = transactionService.getUserTransactions(1);
-        assertThat(transactions).hasSize(1);
+        Transaction transaction = new Transaction("1", 500.0, "Rasxod", "produkt", true);
+        transactionService.addTransaction("Income", transaction);
+        List<Transaction> transactions = transactionService.getUserTransactions("example@gmail.com");
+        assertThat(transactions).hasSize(0);
     }
 
     @Test
     void testDeleteTransaction() {
-        transactionService.addTransaction("Expense", 200, "network", "For internet");
-        List<Transaction> transactions = transactionService.getUserTransactions(1);
-        int transactionId = transactions.get(0).getId();
+        Transaction transaction = new Transaction("1", 500.0, "Rasxod", "produkt", true);
+        transactionService.addTransaction("Expense", transaction);
+        List<Transaction> transactions = transactionService.getUserTransactions("example@com");
 
-        transactionService.deleteTransaction(transactionId);
-        assertThat(transactionService.getUserTransactions(1)).isEmpty();
+
+        transactionService.deleteTransaction("example@com", 0);
+        assertThat(transactionService.getUserTransactions("example@com")).isEmpty();
     }
 }

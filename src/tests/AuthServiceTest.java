@@ -7,7 +7,7 @@ import services.AuthService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class AuthServiceTest {
+public class AuthServiceTest {
     private AuthService authService;
 
     @BeforeEach
@@ -16,22 +16,37 @@ class AuthServiceTest {
     }
 
     @Test
-    void testRegister() {
-        User user = authService.register("test@mail.com", "password", "Test User");
-        assertThat(user).isNotNull();
-        assertThat(user.getEmail()).isEqualTo("test@mail.com");
-    }
-
-    @Test
-    void testLoginSuccess() {
-        authService.register("test@mail.com", "password", "Test User");
-        User user = authService.login("test@mail.com", "password");
+    void testRegisterUser_Success() {
+        User user = authService.register("test@example.com", "password123", "name");
         assertThat(user).isNotNull();
     }
 
     @Test
-    void testLoginFailure() {
-        User user = authService.login("wrong@mail.com", "wrongpass");
+    void testRegisterUser_Fail_DuplicateEmail() {
+        User user = authService.register("test@example.com", "password123", "name");
+        User duplicateUser = authService.register("test@example.com", "newpassword", "newname");
+
+        assertThat(duplicateUser).isNull();
+    }
+
+    @Test
+    void testLoginUser_Success() {
+        authService.register("test@example.com", "password123", "name");
+        User user = authService.login("test@example.com", "password123");
+        assertThat(user).isNotNull();
+        assertThat(user.getEmail()).isEqualTo("test@example.com");
+    }
+
+    @Test
+    void testLoginUser_Fail_WrongPassword() {
+        authService.register("test@example.com", "password123", "name");
+        User user = authService.login("test@example.com", "wrongpassword");
+        assertThat(user).isNull();
+    }
+
+    @Test
+    void testLoginUser_Fail_UserNotFound() {
+        User user = authService.login("unknown@example.com", "password");
         assertThat(user).isNull();
     }
 }
