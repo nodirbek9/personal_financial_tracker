@@ -76,7 +76,6 @@ public class FinanceApp {
                                 break;
                             }
                         } else if (action == 2) {
-                            // Операции с транзакциями
                             if (currentUser != null) {
                                 System.out.println("Добро пожаловать, " + currentUser.getName() + "!");
                             }
