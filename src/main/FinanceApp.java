@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
-
  //Консольное приложение для управления личными финансами.
 
 public class FinanceApp {
@@ -77,17 +76,16 @@ public class FinanceApp {
                                 break;
                             }
                         } else if (action == 2) {
-                            // Операции с транзакциями
                             if (currentUser != null) {
                                 System.out.println("Добро пожаловать, " + currentUser.getName() + "!");
                             }
                             TransactionService fm = new TransactionService();
                             while (true) {
                                 System.out.println("1. Добавить транзакцию\n" +
-                                        "2. Редактировать транзакцию" +
-                                        "\n3. Удалить транзакцию" +
-                                        "\n4. Просмотреть транзакции" +
-                                        "\n5. Выйти");
+                                        "2. Редактировать транзакцию" + "\n" +
+                                        "3. Удалить транзакцию" + "\n" +
+                                        "4. Просмотреть транзакции" + "\n" +
+                                        "5. Выйти");
                                 int choice1 = scanner.nextInt();
                                 scanner.nextLine();
 
